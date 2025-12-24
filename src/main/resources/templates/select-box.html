@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>지역별 가맹점 검색</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+
+<h3>지역별 가맹점 검색</h3>
+
+<!-- 검색 폼 -->
+<form th:action="@{/select-box/results}" method="get" class="row g-3 mb-3">
+    <div class="col-md-3">
+        <select id="ctprvn" name="ctprvnNm" class="form-select">
+            <option value="">시도 선택</option>
+            <option th:each="r : ${regions}" th:value="${r}" th:text="${r}"
+                    th:selected="${r == selectedCtprvn}"></option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select id="signgu" name="signguNm" class="form-select">
+            <option value="">군구 선택</option>
+            <option th:each="d : ${districts}" th:value="${d}" th:text="${d}"
+                    th:selected="${d == selectedSigngu}"></option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <input type="text" name="mrhstNm" class="form-control" placeholder="가맹점명 입력"
+               th:value="${enteredMrhst}">
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">검색</button>
+    </div>
+</form>
+
+<!-- 검색 결과 테이블 -->
+<table class="table table-striped" th:if="${results}">
+    <thead>
+    <tr>
+        <th>가맹점명</th>
+        <th>도로명 주소</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="w : ${results}">
+        <td th:text="${w.mrhstNm}"></td>
+        <td th:text="${w.rdnmadr}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- JS: 군구 AJAX 로딩 -->
+<script>
+    document.getElementById("ctprvn").addEventListener("change", function () {
+        const ctprvn = this.value;
+        const select = document.getElementById("signgu");
+        select.innerHTML = '<option value="">군구 선택</option>';
+
+        if (!ctprvn) return;
+
+        fetch(`/select-box/districts?ctprvnNm=${encodeURIComponent(ctprvn)}`)
+            .then(res => res.json())
+            .then(data => {
+                data.forEach(d => {
+                    const opt = document.createElement("option");
+                    opt.value = d;
+                    opt.textContent = d;
+                    select.appendChild(opt);
+                });
+            });
+    });
+</script>
+
+</body>
+</html>
+
